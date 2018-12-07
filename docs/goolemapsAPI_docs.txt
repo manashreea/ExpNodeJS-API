@@ -1,0 +1,236 @@
+$ npm install @google/maps
+Note: You'll need to have npm 2.7.0 or greater installed, since this library is hosted as a scoped package.
+
+Create a new client object by calling createClient()
+
+const googleMapsClient = require('@google/maps').createClient({
+  key: 'your API key here'
+});
+Make requests to the Google Maps APIs by calling methods on the client object.
+
+// Geocode an address.
+googleMapsClient.geocode({
+  address: '1600 Amphitheatre Parkway, Mountain View, CA'
+}, function(err, response) {
+  if (!err) {
+    console.log(response.json.results);
+  }
+});
+You may use promise-based solution also.
+
+const googleMapsClient = require('@google/maps').createClient({
+  key: 'your API key here',
+  Promise: Promise
+});
+
+googleMapsClient.geocode({address: '1600 Amphitheatre Parkway, Mountain View, CA'})
+  .asPromise()
+  .then((response) => {
+    console.log(response.json.results);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+
+
+Places Library
+Note: Server-side libraries
+Overview
+The functions in the Places Library, Maps JavaScript API enable your application to search for places (defined in this API as establishments, geographic locations, or prominent points of interest) contained within a defined area, such as the bounds of a map, or around a fixed point.
+
+The Places SDK offers an autocomplete feature which you can use to give your applications the type-ahead-search behavior of the Google Maps search field. When a user starts typing an address, autocomplete will fill in the rest. For more information, see the autocomplete documentation.
+
+Getting started
+If you are unfamiliar with the Maps JavaScript API or with JavaScript, we recommend reviewing JavaScript and Get API Key prior to getting started.
+
+Before using the Places library in the Maps JavaScript API, first ensure that the Places API is enabled in the Google Cloud Platform Console, in the same project you set up for the Maps JavaScript API.
+
+To view your list of enabled APIs:
+
+Go to the Google Cloud Platform Console.
+Click the Select a project button, then select the same project you set up for the Maps JavaScript API and click Open.
+From the list of APIs on the Dashboard, look for Places API.
+If you see the API in the list, you�re all set. If the API is not listed, enable it:
+At the top of the page, select ENABLE API to display the Library tab. Alternatively, from the left side menu, select Library.
+Search for Places API, then select it from the results list.
+Select ENABLE. When the process finishes, Places API appears in the list of APIs on the Dashboard.
+Loading the library
+The Places service is a self-contained library, separate from the main Maps JavaScript API code. To use the functionality contained within this library, you must first load it using the libraries parameter in the Maps API bootstrap URL:
+
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+See the Libraries Overview for more information.
+
+Usage limits and policies
+Quotas
+The Places Library, JavaScript API shares a usage quota with Places API as described in the Usage Limits documentation for Places API. The queries per second rate limit is applied per user session, regardless of how many users share the same project.*
+
+* Note: When you first load the API, you are allocated an initial quota of requests. Once you use this quota, the API enforces rate limits on additional requests on a per-second basis. If too many requests are made within a certain time period, the API returns an OVER_QUERY_LIMIT response code. The per-session rate limit prevents the use of client-side services for batch requests. For batch requests, use our web service APIs.
+
+Policies
+Use of the Places Library, Maps JavaScript API must be in accordance with the policies described for the Places API.
+
+Place Searches
+With the Places service you can perform the following kinds of searches:
+
+Find Place from Query returns a place based on a text query (for example, the name or address of a place).
+Find Place from Phone Number returns a place based on a phone number.
+Nearby Search returns a list of nearby places based on a user's location.
+Text Search returns a list of nearby places based on a search string, eg. "Pizza".
+Place Details requests return more detailed information about a specific place, including user reviews.
+The information returned can include establishments � such as restaurants, stores, and offices � as well as 'geocode' results, which indicate addresses, political areas such as towns and cities, and other points of interest.
+
+Find Place requests
+A Find Place request lets you search for a place either by text query or phone number. There are two types of Find Place request:
+
+Find Place from Query
+Find Place from Phone Number
+Find Place from Query
+Find Place from Query takes a text input and returns a place. The input can be any kind of Place data, for example a business name or address. To make a Find Place from Query request, call the PlaceService's findPlaceFromQuery() method, which takes the following parameters:
+
+query (required) A text string on which to search.
+fields (required) One or more fields specifying the types of Place data to return.
+locationBias (optional) Coordinates defining the area to search. This can be one of the following:
+A set of lat/lng coordinates specified as LatLngLiteral or LatLng object
+Rectangular bounds (two lat/lng pairs, or a LatLngBounds object)
+Radius (in meters) centered on a lat/lng
+You must also pass a callback method to findPlaceFromQuery(), to handle the results object and google.maps.places.PlacesServiceStatus response.
+
+The following example shows a call to findPlaceFromQuery(), searching for "Museum of Contemporary Art Australia", and including the photos, formatted_address, name, rating, opening_hours, and geometry fields.
+
+var map;
+var service;
+var infowindow;
+
+function initMap() {
+  var mapCenter = new google.maps.LatLng(-33.8617374,151.2021291);
+
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: mapCenter,
+    zoom: 15
+  });
+
+  var request = {
+    query: 'Museum of Contemporary Art Australia',
+    fields: ['photos', 'formatted_address', 'name', 'rating', 'opening_hours', 'geometry'],
+  };
+
+  service = new google.maps.places.PlacesService(map);
+  service.findPlaceFromQuery(request, callback);
+}
+
+function callback(results, status) {
+  if (status == google.maps.places.PlacesServiceStatus.OK) {
+    for (var i = 0; i < results.length; i++) {
+      var place = results[i];
+      createMarker(results[i]);
+    }
+  }
+}
+
+
+Find Place from Phone Number
+Find Place from Phone Number takes a phone number and returns a place. To make a Find Place from Phone Number request, call the PlaceService's findPlaceFromPhoneNumber() method, which takes the following parameters:
+
+phoneNumber (required) A phone number, in E.164 format.
+fields (required) One or more fields specifying the types of Place data to return.
+locationBias (optional) Coordinates defining the area to search. This can be one of the following:
+A set of lat/lng coordinates specified as LatLngLiteral or LatLng object
+Rectangular bounds (four lat/lng points, or a LatLngBounds object)
+Radius (in meters) centered on a lat/lng
+You must also pass a callback method to findPlaceFromPhoneNumber(), to handle the results object and google.maps.places.PlacesServiceStatus response.
+
+Fields (Find Place methods)
+Use the fields parameter to specify a comma-separated list of place data types to return. For example: fields=opening_hours,icon,geometry. Use a forward slash when specifying compound values. For example: geometry/location.
+
+Fields correspond to Place Search results, and are divided into three billing categories: Basic, Contact, and Atmosphere. Basic fields are billed at base rate, and incur no additional charges. Contact and Atmosphere fields are billed at a higher rate. See the pricing sheet for more information. Attributions (html_attributions) are always returned with every call, regardless of whether the field has been requested.
+
+Caution: Place Search requests and Place Details requests do not return the same fields. Place Search requests return a subset of the fields that are returned by Place Details requests. If the field you want is not returned by Place Search, you can use Place Search to get a place_id, then use that Place ID to make a Place Details request.
+Basic
+
+The Basic category includes the following fields:
+formatted_address, geometry, icon, id, name, permanently_closed, photos, place_id, plus_code, scope, types
+
+Contact
+
+The Contact category includes the following field: opening_hours (Place Search returns only open_now; use a Place Details request to get the full opening_hours results).
+Atmosphere
+
+The Atmosphere category includes the following fields: price_level, rating
+The findPlaceFromQuery() and findPlaceFromPhoneNumber() methods each take the same set of fields, and can return the same fields in their respective responses.
+
+Set location bias (Find Place methods)
+Use the locationBias parameter to make Find Place favor results in a particular area. You can set locationBias in the following ways:
+
+Bias results to a specific area:
+
+locationBias: {lat: 37.402105, lng: -122.081974}
+Define a rectangular area to search:
+
+locationBias: {north: 37.41, south: 37.40, east: -122.08, west: -122.09}
+You can also use a LatLngBounds.
+
+Define a radius to search (in meters), centered on a particular area:
+
+locationBias: {radius: 100, center: {lat: 37.402105, lng: -122.081974}}
+
+//Data on place - kashish park, place id
+{
+"valid":true,
+"data":{"html_attributions":[],
+        "result":{"address_components":[
+                    {"long_name":"Kashish Park","short_name":"Kashish Park","types":["sublocality_level_2","sublocality","political"]},
+                    {"long_name":"Thane","short_name":"Thane","types":["locality","political"]},
+                    {"long_name":"Thane","short_name":"Thane","types":["administrative_area_level_2","political"]},
+                    {"long_name":"Maharashtra","short_name":"MH","types":["administrative_area_level_1","political"]},
+                    {"long_name":"India","short_name":"IN","types":["country","political"]},
+                    {"long_name":"400080","short_name":"400080","types":["postal_code"]}],
+                  "adr_address":"<span class=\"extended-address\">Kashish Park</span>, <span class=\"locality\">Thane</span>, <span class=\"region\">Maharashtra</span> <span class=\"postal-code\">400080</span>, <span class=\"country-name\">India</span>",
+                  "formatted_address":"Kashish Park, Thane, Maharashtra 400080, India",
+                  "geometry":{"location":{"lat":19.1845979,"lng":72.9579021},
+                              "viewport":{"northeast":{"lat":19.1951359,"lng":72.97390949999999},
+                              "southwest":{"lat":19.1740592,"lng":72.94189469999999}}},
+                              "icon":"https://maps.gstatic.com/mapfiles/place_api/icons/geocode-71.png",
+                              "id":"31dc1e77e49f0a26113de5674606879dbe3204e6",
+                              "name":"Kashish Park",
+                              "photos":[{"height":4128,"html_attributions":["<a href=\"https://maps.google.com/maps/contrib/110485108430955504762/photos\">Mayur Gaikwad</a>"],"photo_reference":"CmRaAAAAA8GlNAMKGrkLT0xmtr1iIc7cl9VSpnJxVjJjTla-YNicYz_KtemCqR0RMbgw416rBx8L9rkyPj7dRzXkn3gMzQKWqA0nn_XUKHrwqicARBPKw0nAyx8NERP1EreR85CYEhBJN59DIDzzPcj1AHU2mbabGhRBzCJv6pfFQ02AEWFv1eWOQUDm9w","width":3096},{"height":4128,"html_attributions":["<a href=\"https://maps.google.com/maps/contrib/110902487078015630857/photos\">Shailendra Verma</a>"],"photo_reference":"CmRaAAAAb8njQOYkrhZ9zAvF65KxlZpN4UFeVoRK-YeyeWDS7KxB2mz_iGEfZzjCkbEtiIsJcXhaApD5sdOXD0G54IzI9FYZQcSDHa1aXnICWbBouf5aIC0vV5zFQ0GVBbRopl4pEhBeJXtXIJygnpUuFAAYm62lGhQtiT5ig3HJz1lAOLyAGFlxIDSKSA","width":3096}],"place_id":"ChIJ_SnJquK45zsR7xEzpE_cSco","reference":"ChIJ_SnJquK45zsR7xEzpE_cSco","scope":"GOOGLE","types":["sublocality_level_2","sublocality","political"],
+                  "url":"https://maps.google.com/?q=Kashish+Park,+Thane,+Maharashtra+400080,+India&ftid=0x3be7b8e2aac929fd:0xca49dc4fa43311ef","utc_offset":330,"vicinity":"Kashish Park"},
+"status":"OK"},
+"message":"success"} 
+==============================================================
+shilpa sadan,prabhadevi map Details
+
+{"valid":true,
+"data":{"html_attributions":[],
+        "result":{"address_components":[{"long_name":"Shankar Ghanekar Road","short_name":"Shankar Ghanekar Rd","types":["route"]},
+                                        {"long_name":"M.B Kowli Wadi","short_name":"M.B Kowli Wadi","types":["neighborhood","political"]},
+                                        {"long_name":"Dadar West","short_name":"Dadar West","types":["sublocality_level_2","sublocality","political"]},
+                                        {"long_name":"Prabhadevi","short_name":"Prabhadevi","types":["sublocality_level_1","sublocality","political"]},
+                                        {"long_name":"Mumbai","short_name":"Mumbai","types":["locality","political"]},
+                                        {"long_name":"Mumbai","short_name":"Mumbai","types":["administrative_area_level_2","political"]},
+                                        {"long_name":"Maharashtra","short_name":"MH","types":["administrative_area_level_1","political"]},
+                                        {"long_name":"India","short_name":"IN","types":["country","political"]},
+                                        {"long_name":"400025","short_name":"400025","types":["postal_code"]}],
+                  "adr_address":"<span class=\"street-address\">Shankar Ghanekar Rd</span>, <span class=\"extended-address\">M.B Kowli Wadi, Dadar West, Prabhadevi</span>, <span class=\"locality\">Mumbai</span>, <span class=\"region\">Maharashtra</span> <span class=\"postal-code\">400025</span>, <span class=\"country-name\">India</span>",
+                  "formatted_address":"Shankar Ghanekar Rd, M.B Kowli Wadi, Dadar West, Prabhadevi, Mumbai, Maharashtra 400025, India",
+                  "geometry":{"location":{"lat":19.0154187,"lng":72.83336779999999},
+                              "viewport":{"northeast":{"lat":19.0168835302915,"lng":72.8346696302915},"southwest":{"lat":19.01418556970849,"lng":72.8319716697085}}},
+                  "icon":"https://maps.gstatic.com/mapfiles/place_api/icons/generic_business-71.png",
+                  "id":"de6236ff386613652cf4f659fa260ef28cf24a1b",
+                  "name":"SHILPA SADAN Bldg",
+                  "photos":[{"height":3600,
+                            "html_attributions":["<a href=\"https://maps.google.com/maps/contrib/104257842820580620524/photos\">Sanjeev Keer</a>"],"photo_reference":"CmRaAAAAUJ6egYjF_nq3PPCOoLodfr6rtZVl9pLB2Ltoeh_ZQ4kokTyH1UGaAD3tHoc4RDyv4TyfyTwvprG_XN5b1up2pdFBj9p21QZzYD8AmPptxYj7OmtKC7BB8s7VKopuQ3yKEhDM7_VtQxWrDP-mPu8t4Z-tGhQ1Szp7yX_hRFhOFmjTnRk95AOI0A","width":2160},{"height":3600,
+                            "html_attributions":["<a href=\"https://maps.google.com/maps/contrib/104257842820580620524/photos\">Sanjeev Keer</a>"],"photo_reference":"CmRaAAAA1x6bBt7V6x-rgZIN6f6Gbh7PDeeYVooXowt5xQTXxRH3VJG6-xOGuUxegfkGpHFcbq3wWPpW4UHlnPGIe6UU4_wMbjeb7rfxpuViFFvRXt7I-xnL30WEt3x18siDeOIeEhDI_0Ruqp3EtQ8tmg05sRN7GhT4AWFrfm7YsQ1Xz1kpUm3kPE_3hw","width":2160},{"height":1280,
+                            "html_attributions":["<a href=\"https://maps.google.com/maps/contrib/112888305935251996897/photos\">Satyajit Mugdar</a>"],"photo_reference":"CmRaAAAAyKfWpx4R1JhU6u0AEOINdD6SdDNuavveETcAreNo5rb0v0t4fRo30E4hXx7nP9KgLzH_Rrsr4rAarbsekwtN50BULC8o8SpvdOB00uFlSZb-QOjgc-kZIXiK-yzxqWo1EhB0KZDG7rQEn50QTAm0RfGHGhTL4vwcGPb6WcEPpbd0mRt9Q6BWSQ","width":720}],
+                  "place_id":"ChIJnZGLesHO5zsR7YzBJFw20Ps",
+                  "plus_code":{"compound_code":"2R8M+58 Mumbai, Maharashtra, India","global_code":"7JFJ2R8M+58"},
+                  "rating":4,
+                  "reference":"ChIJnZGLesHO5zsR7YzBJFw20Ps",
+                  "reviews":[{"author_name":"Satyajit Mugdar","author_url":"https://www.google.com/maps/contrib/112888305935251996897/reviews","language":"hi","profile_photo_url":"https://lh6.googleusercontent.com/-UFH0nwm6ZP8/AAAAAAAAAAI/AAAAAAAAX_0/QOj2RTnfbdw/s128-c0x00000000-cc-rp-mo-ba6/photo.jpg","rating":5,"relative_time_description":"2 months ago","text":"Opposite of Javed Habib hair saloon...Before sidhi vinayak mandir","time":1538323594},{"author_name":"Raj Chawan","author_url":"https://www.google.com/maps/contrib/102120013609835714036/reviews","profile_photo_url":"https://lh3.googleusercontent.com/-YQrgdeO98g0/AAAAAAAAAAI/AAAAAAAAAAA/AGDgw-hX3-hCbpXB05yi1Wav5Uwwi6ucpQ/s128-c0x00000000-cc-rp-mo/photo.jpg","rating":3,"relative_time_description":"a month ago","text":"","time":1540931180},{"author_name":"Firoz Khan","author_url":"https://www.google.com/maps/contrib/108936293669613832302/reviews","profile_photo_url":"https://lh6.googleusercontent.com/-1gD5qLeRvAU/AAAAAAAAAAI/AAAAAAAAC5g/_EWiAHI4AVk/s128-c0x00000000-cc-rp-mo/photo.jpg","rating":2,"relative_time_description":"7 months ago","text":"","time":1524501359},{"author_name":"Omkar Mayekar","author_url":"https://www.google.com/maps/contrib/101869823528658706905/reviews","profile_photo_url":"https://lh6.googleusercontent.com/-6uSgYVHtbtE/AAAAAAAAAAI/AAAAAAAABdo/olNdDLpyC4c/s128-c0x00000000-cc-rp-mo/photo.jpg","rating":5,"relative_time_description":"11 months ago","text":"","time":1514005137},{"author_name":"Sanjeev Keer","author_url":"https://www.google.com/maps/contrib/104257842820580620524/reviews","profile_photo_url":"https://lh4.googleusercontent.com/-BJd0Fs044Ms/AAAAAAAAAAI/AAAAAAAAAAA/AGDgw-hA-I4pHICT1Fg7_FeDHkwp-XsSZg/s128-c0x00000000-cc-rp-mo/photo.jpg","rating":5,"relative_time_description":"2 years ago","text":"","time":1477991130}],
+                  "scope":"GOOGLE",
+                  "types":["point_of_interest","establishment"],
+                  "url":"https://maps.google.com/?cid=18145062668057283821",
+                  "utc_offset":330,
+                  "vicinity":"Shankar Ghanekar Road, M.B Kowli Wadi, Dadar West, Prabhadevi, Mumbai"},
+        "status":"OK"},
+"message":"success"}
